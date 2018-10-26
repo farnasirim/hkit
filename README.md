@@ -6,6 +6,7 @@ hkit currently implements utilities for the following use cases:
 - [Logging](#logging)
 
 ### <a name="logging"></a> Logging
+TODO: Unfortunately response logger doesn't quite work right now.
 
 You can use hkit.Logger with any `http.Handler` or `http.HandlerFunc` as easy as the following:
 #### net/http
