@@ -46,7 +46,7 @@ func TestLoggerSimple(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	mapFromLogJson := func(log string) map[string]interface{} {
+	mapFromLogJSON := func(log string) map[string]interface{} {
 		parts := strings.Split(log, "\n")
 		lastPart := parts[len(parts)-1]
 		mp := make(map[string]interface{})
@@ -67,7 +67,7 @@ Content-Type: application/x-www-form-urlencoded
 `
 	expected += string(payloadString)
 
-	if !reflect.DeepEqual(mapFromLogJson(expected), mapFromLogJson(logWriter.String())) {
+	if !reflect.DeepEqual(mapFromLogJSON(expected), mapFromLogJSON(logWriter.String())) {
 		t.Error("expected logged output not equal to the actual one")
 	}
 }
