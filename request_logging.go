@@ -101,6 +101,7 @@ func (l *requestBodyLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	r.Body = duplicatedCloser
 	l.writer.Write(contentBytes)
+	l.writer.Write([]byte("\n\n"))
 }
 
 func (l *requestBodyLogger) SetWriter(writer io.Writer) *requestBodyLogger {
