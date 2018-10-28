@@ -14,7 +14,26 @@ import (
 
 func TestLoggerSimple(t *testing.T) {
 
+	expRequestMap := map[string]interface{}{
+		"hello": "wow",
+		"complex": []interface{}{
+			map[string]interface{}{
+				"1": "2",
+			},
+			"wow",
+		},
+	}
+
+	expResponseMap := map[string]interface{}{
+		"key": "value",
+		"another key": []interface{}{
+			"val", "ues",
+		},
+	}
+	expRequestString, _ := json.Marshal(expRequestMap)
+
 	testHandler := func(w http.ResponseWriter, req *http.Request) {
+		json.NewEncoder(w).Encode(expResponseMap)
 	}
 
 	logWriter := bytes.NewBuffer(nil)
@@ -33,41 +52,21 @@ func TestLoggerSimple(t *testing.T) {
 	target := "/some/target/url"
 	url.Path = path.Join(url.Path, target)
 
-	payload := map[string]interface{}{"hello": "wow", "complex": []interface{}{map[string]interface{}{"1": "2"}, 2, 3, "wow"}}
-	payloadString, err := json.Marshal(payload)
-	if err != nil {
-		t.Error(err.Error())
-	}
+	http.Post(url.String(), "application/json", bytes.NewBuffer(expRequestString))
 
-	payloadReader := bytes.NewBuffer(payloadString)
+	expectedJSONs := []interface{}{expRequestMap, expResponseMap}
+	actualJSONs := []interface{}{}
 
-	_, err = http.Post(url.String(), "application/json", payloadReader)
-	if err != nil {
-		t.Error(err.Error())
-	}
-
-	mapFromLogJSON := func(log string) map[string]interface{} {
-		parts := strings.Split(log, "\n")
-		lastPart := parts[len(parts)-1]
+	for _, line := range strings.Split(logWriter.String(), "\n") {
 		mp := make(map[string]interface{})
-		if err := json.Unmarshal([]byte(lastPart), &mp); err != nil {
-			t.Error(err.Error())
+		err := json.Unmarshal([]byte(line), &mp)
+		if err != nil {
+			continue
 		}
-		return mp
+		actualJSONs = append(actualJSONs, mp)
 	}
 
-	expected := `Method: POST
-remote address: [::1]:57770
-
-User-Agent: curl/7.54.1
-Accept: */*
-Content-Length: 16
-Content-Type: application/x-www-form-urlencoded
-
-`
-	expected += string(payloadString)
-
-	if !reflect.DeepEqual(mapFromLogJSON(expected), mapFromLogJSON(logWriter.String())) {
+	if !reflect.DeepEqual(expectedJSONs, actualJSONs) {
 		t.Error("expected logged output not equal to the actual one")
 	}
 }
