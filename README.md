@@ -1,23 +1,30 @@
 # HKIT
 
-an http toolkit containing useful http utilities.
+`hkit` is an http toolkit which implements handy, easy to configure facades.
+
+To Install, do as you would with go modules:
+
+```bash
+vgo get github.com/farnasirim/hkit
+```
+You can use old fashioned `go get` too if you want.
+
+## Docs
 
 hkit currently implements utilities for the following use cases:
 - [Logging](#logging)
 
 ### <a name="logging"></a> Logging
-TODO: Unfortunately response logger doesn't quite work right now.
 
 You can use hkit.Logger with any `http.Handler` or `http.HandlerFunc` as easy as the following:
 #### net/http
 ```go
-
 package main
 
 import (
 	"net/http"
 
-	"github.com/colonelmo/hkit"
+	"github.com/farnasirim/hkit"
 )
 
 func main() {
@@ -38,14 +45,16 @@ curl localhost:8000 -d '{"some": "json"}'
 will result in
 ```
 Method: POST
-remote address: [::1]:57770
+remote address: [::1]:39252
 
-User-Agent: curl/7.54.1
+Content-Type: application/x-www-form-urlencoded
+User-Agent: curl/7.61.1
 Accept: */*
 Content-Length: 16
-Content-Type: application/x-www-form-urlencoded
 
 {"some": "json"}
+
+{"x": "2", "y": {"a": "b"}}
 ```
 
 #### logrus
@@ -74,17 +83,17 @@ func main() {
 }
 ```
 
-Which will result in:
-```
-INFO[0001] Method: POST
-INFO[0001] remote address: [::1]:42424
-INFO[0001]
-INFO[0001] User-Agent: curl/7.54.1
-INFO[0001] Accept: */*
-INFO[0001] Content-Length: 16
-INFO[0001] Content-Type: application/x-www-form-urlencoded
-INFO[0001]
-```
+And the previous curl will result in:
+<pre><font color="#00AAAA">INFO</font>[0021] Method: POST                                 
+<font color="#00AAAA">INFO</font>[0021] remote address: [::1]:39358                  
+<font color="#00AAAA">INFO</font>[0021]                                              
+<font color="#00AAAA">INFO</font>[0021] User-Agent: curl/7.61.1                      
+<font color="#00AAAA">INFO</font>[0021] Accept: */*                                  
+<font color="#00AAAA">INFO</font>[0021] Content-Length: 16                           
+<font color="#00AAAA">INFO</font>[0021] Content-Type: application/x-www-form-urlencoded 
+<font color="#00AAAA">INFO</font>[0021]                                              
+<font color="#00AAAA">INFO</font>[0021] {&quot;some&quot;: &quot;json&quot;}                             
+<font color="#00AAAA">INFO</font>[0021]   </pre>
 
 being written to the stdout.
 
