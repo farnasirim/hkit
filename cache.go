@@ -21,3 +21,17 @@ func NewCacheParamsByKey(cacheKey string) *CacheParams {
 // generate a cache key to for example cache /resource and /resource/ the same
 // way. You may set cache timeouts, eviction policies, etc.
 type CacheParamsFunc func(context.Context, *http.Request) *CacheParams
+
+// CacheService defines the api that should be provided by any cache backend
+// service. An example would be `RedisCacheService`, implementing caching
+// strategies based on the passed `*CacheParams`, using redis as storage backend
+type CacheService interface {
+	// TryGet will ask the CacheService for the cached value represented by
+	// cacheParams, which will also determine what the cacheBackend should do
+	// with it after a possible hit (update the lru, refresh timeout, etc.)
+	TryGet(ctx context.Context, cacheParams *CacheParams) (interface{}, error)
+
+	// Set will ask the cache backend to associate the value to the supplied
+	// *cacheParams struct
+	Set(ctx context.Context, cacheParams *CacheParams, value interface{}) error
+}
