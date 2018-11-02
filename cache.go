@@ -2,6 +2,7 @@ package hkit
 
 import (
 	"context"
+	"net/http"
 )
 
 // CacheParams is the metadata passed to the cache engine.
@@ -10,6 +11,7 @@ type CacheParams struct {
 	cacheKey string
 }
 
+// NewCacheParamsByKey returns cache
 func NewCacheParamsByKey(cacheKey string) *CacheParams {
 	return &CacheParams{
 		cacheKey: cacheKey,
