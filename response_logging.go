@@ -63,6 +63,7 @@ func (l *responseBodyLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	writer := NewLazyMultiWriter(w, bodyLoggerResponseWriter)
 	l.next(writer, r)
 	l.writer.Write(tmpWriter.Bytes())
+	l.writer.Write([]byte("\n\n"))
 }
 
 func (l *responseBodyLogger) SetWriter(writer io.Writer) *responseBodyLogger {
