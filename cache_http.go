@@ -29,7 +29,9 @@ type HTTPResponseInterceptor struct {
 	writtenCode  int
 }
 
-func NewHTTPResponseInterceptor(w http.ResponseWriter) *HTTPResponseInterceptor {
+func NewHTTPResponseInterceptor(
+	w http.ResponseWriter) *HTTPResponseInterceptor {
+
 	interceptor := &HTTPResponseInterceptor{
 		tempHeader:   cloneHeader(w.Header()),
 		lockedHeader: nil,
