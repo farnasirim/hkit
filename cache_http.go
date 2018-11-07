@@ -18,6 +18,8 @@ var (
 // ResponseWriter. IMPORTANT NOTE: will only capture header state until
 // the first call to WriteHeader or Write. Therefore no support for
 // trailers etc.
+// Should be used once. Instantiate a new one for each time you're proxying
+// the write process. E.g. instantiate inside your middleware function per req.
 // Behavior may diverge from the implementors in the "net/http", so no
 // crazily protective behaviors should be expected from this wrapper.
 // TL;DR: you probably have your own cache wrapper if you are writing
@@ -35,7 +37,7 @@ func NewHTTPResponseInterceptor(
 	interceptor := &HTTPResponseInterceptor{
 		tempHeader:   cloneHeader(w.Header()),
 		lockedHeader: nil,
-		writtenBytes: nil,
+		writtenBytes: make([]byte, 0),
 		writtenCode:  -1,
 	}
 	return interceptor
@@ -43,10 +45,7 @@ func NewHTTPResponseInterceptor(
 
 func (w *HTTPResponseInterceptor) Write(bytes []byte) (int, error) {
 	w.lockHeader()
-	if w.writtenBytes != nil {
-		return 0, ErrAlreadyWritten
-	}
-	w.writtenBytes = bytes
+	w.writtenBytes = append(w.writtenBytes, bytes...)
 	return w.Write(bytes)
 }
 
@@ -78,9 +77,12 @@ func (w *HTTPResponseInterceptor) Replay(writer http.ResponseWriter) {
 	if w.writtenCode != -1 {
 		writer.WriteHeader(w.writtenCode)
 	}
-	if w.writtenBytes != nil {
-		writer.Write(w.writtenBytes)
-	}
+	writer.Write(w.writtenBytes)
+}
+
+func (w *HTTPResponseInterceptor) IsHTTPStatusOK() bool {
+	return w.lockedHeader != nil && (w.writtenCode == -1 ||
+		w.writtenCode == http.StatusOK)
 }
 
 func cloneHeader(h http.Header) http.Header {
