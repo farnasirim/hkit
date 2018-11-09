@@ -47,14 +47,16 @@ func NewHTTPResponseReplayer(
 	return replayer
 }
 
-func (w *HTTPResponseReplayer) Serialize(buffer []byte) (int, error) {
-	return 0, nil
+// Marshal marshals this HTTPResponseReplayer to a byte array
+// The implementation copies into buffer for now since it just calls
+// marshal under the hood. TODO use the buffer correctly in the actual
+// writer.
+func (w *HTTPResponseReplayer) Marshal() ([]byte, error) {
+	return marshalReplayer(w), nil
 }
 
-func ReplayerFromSerialized(savedState []byte) *HTTPResponseReplayer {
-	replayer := NewHTTPResponseReplayer(nil)
-
-	return replayer
+func ReplayerFromSerialized(savedState []byte) (*HTTPResponseReplayer, error) {
+	return unmarshalReplayer(savedState)
 }
 
 func (w *HTTPResponseReplayer) Write(bytes []byte) (int, error) {
@@ -84,6 +86,8 @@ func (w *HTTPResponseReplayer) lockHeader() error {
 	return nil
 }
 
+// Replay replays the write operation embodied by this HTTPResponseReplayer
+// TODO: what to return?
 func (w *HTTPResponseReplayer) Replay(writer http.ResponseWriter) {
 	if w.lockedHeader != nil {
 		overwriteHeader(writer.Header(), w.lockedHeader)

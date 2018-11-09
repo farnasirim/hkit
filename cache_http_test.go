@@ -3,6 +3,7 @@ package hkit
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -43,16 +44,20 @@ func TestHTTPResponseInterceptorSimple(t *testing.T) {
 	var cachedValue []byte = nil
 	cachedHandler := func(w http.ResponseWriter, r *http.Request) {
 		if cachedValue == nil {
-
 			interceptedWriter := NewHTTPResponseReplayer(w)
 			originalHandler(interceptedWriter, r)
-			_, err := interceptedWriter.Serialize(cachedValue)
+			var err error
+			cachedValue, err = interceptedWriter.Marshal()
 			if err != nil {
 				t.Error(err.Error())
 			}
 			return
 		}
-		ReplayerFromSerialized(cachedValue).Replay(w)
+		replayer, err := ReplayerFromSerialized(cachedValue)
+		if err != nil {
+			t.Error(err.Error())
+		}
+		replayer.Replay(w)
 	}
 
 	testServer := httptest.NewServer(http.HandlerFunc(cachedHandler))
@@ -78,16 +83,13 @@ func TestHTTPResponseInterceptorSimple(t *testing.T) {
 		t.Error(err.Error())
 	}
 
-	if 2 != origCalled {
-		t.Errorf("incorrect number of calls to the original handler, 2 != %d\n",
+	if 1 != origCalled {
+		t.Errorf("incorrect number of calls to the original handler, 1 != %d\n",
 			origCalled)
 	}
 
-	body1 := make([]byte, 10000)
-	body2 := make([]byte, 10000)
-
-	numRead1, err1 := resp1.Body.Read(body1)
-	numRead2, err2 := resp2.Body.Read(body2)
+	body1, err1 := ioutil.ReadAll(resp1.Body)
+	body2, err2 := ioutil.ReadAll(resp2.Body)
 
 	if err1 != nil {
 		t.Error(err1.Error())
@@ -97,7 +99,7 @@ func TestHTTPResponseInterceptorSimple(t *testing.T) {
 		t.Error(err2.Error())
 	}
 
-	if numRead1 != numRead2 {
+	if len(body1) != len(body2) {
 		t.Errorf("different number of bytes read in subsequent calls\n")
 	}
 
