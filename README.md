@@ -100,4 +100,4 @@ being written to the stdout.
 
 # License
 
-BSD-3-clause
+MIT
